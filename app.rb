@@ -18,6 +18,10 @@ error SocketError, MiniMagick::Invalid do
   406
 end
 
+before do
+  expires 31557600, :public, :max_age => 31536000
+end
+
 get '/resize/:dimensions/*' do |dimensions, url|
   validate_url!(url)
 

@@ -1,17 +1,15 @@
+require 'uri'
 require 'sinatra'
 require 'mini_magick'
+require_relative 'lib/asset'
 
 configure do
   enable :use_code
   set :show_exceptions, :after_handler
 end
 
-helpers do
-  def validate_url!(url)
-    URI.parse("http://#{ url }")
-  rescue
-    error 422
-  end
+error URI::InvalidURIError do
+  422
 end
 
 error SocketError, MiniMagick::Invalid do
@@ -22,22 +20,28 @@ before do
   expires 31557600, :public, :max_age => 31536000
 end
 
-get '/resize/:dimensions/*' do |dimensions, url|
-  validate_url!(url)
+get '/mirror/*' do |url|
+  content_type File.extname(url)
+  send_file(Asset.get("http://#{ url }"), :disposition => 'inline')
+end
 
-  image = MiniMagick::Image.open("http://#{ url }")
+get '/resize/:dimensions/*' do |dimensions, url|
+  asset = Asset.get("http://#{ url }")
+
+  image = MiniMagick::Image.open(asset.path)
   image.combine_options do |command|
     command.filter('box')
     command.resize(dimensions)
   end
 
+  content_type File.extname(url)
   send_file(image.path, :disposition => 'inline')
 end
 
 get '/crop/:dimensions/*' do |dimensions, url|
-  validate_url!(url)
+  asset = Asset.get("http://#{ url }")
 
-  image = MiniMagick::Image.open("http://#{ url }")
+  image = MiniMagick::Image.open(asset.path)
   image.combine_options do |command|
     command.filter('box')
     command.resize(dimensions + '^^')
@@ -45,5 +49,6 @@ get '/crop/:dimensions/*' do |dimensions, url|
     command.extent(dimensions)
   end
 
+  content_type File.extname(url)
   send_file(image.path, :disposition => 'inline')
 end

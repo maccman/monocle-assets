@@ -8,6 +8,13 @@ configure do
   set :show_exceptions, :after_handler
 end
 
+helpers do
+  def extname(path)
+    ext = File.extname(path)
+    ext == '' ? nil : ext
+  end
+end
+
 error URI::InvalidURIError do
   422
 end
@@ -21,7 +28,7 @@ before do
 end
 
 get '/mirror/*' do |url|
-  content_type File.extname(url)
+  content_type extname(url) || :png
   send_file(Asset.get("http://#{ url }"), :disposition => 'inline')
 end
 
@@ -34,7 +41,7 @@ get '/resize/:dimensions/*' do |dimensions, url|
     command.resize(dimensions)
   end
 
-  content_type File.extname(url)
+  content_type extname(url) || :png
   send_file(image.path, :disposition => 'inline')
 end
 
@@ -49,6 +56,6 @@ get '/crop/:dimensions/*' do |dimensions, url|
     command.extent(dimensions)
   end
 
-  content_type File.extname(url)
+  content_type extname(url) || :png
   send_file(image.path, :disposition => 'inline')
 end

@@ -19,8 +19,10 @@ error URI::InvalidURIError do
   422
 end
 
-error SocketError, MiniMagick::Invalid do
-  406
+error SocketError, MiniMagick::Invalid, Timeout::Error do
+  # We do not want our CDN to re-fetch these
+  status 200
+  send_file 'public/blank.gif'
 end
 
 before do

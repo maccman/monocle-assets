@@ -5,7 +5,6 @@ require_relative 'lib/asset'
 
 configure do
   enable :use_code
-  set :show_exceptions, :after_handler
 end
 
 helpers do
@@ -26,12 +25,12 @@ error SocketError, MiniMagick::Invalid, Timeout::Error do
 end
 
 before do
-  expires 31557600, :public, :max_age => 31536000
+  expires 31557600, :public, max_age: 31536000
 end
 
 get '/mirror/*' do |url|
   content_type extname(url) || :png
-  send_file(Asset.get("http://#{ url }"), :disposition => 'inline')
+  send_file(Asset.get("http://#{ url }"), disposition: 'inline')
 end
 
 get '/resize/:dimensions/*' do |dimensions, url|
@@ -44,7 +43,7 @@ get '/resize/:dimensions/*' do |dimensions, url|
   end
 
   content_type extname(url) || :png
-  send_file(image.path, :disposition => 'inline')
+  send_file(image.path, disposition: 'inline')
 end
 
 get '/crop/:dimensions/*' do |dimensions, url|
@@ -59,5 +58,5 @@ get '/crop/:dimensions/*' do |dimensions, url|
   end
 
   content_type extname(url) || :png
-  send_file(image.path, :disposition => 'inline')
+  send_file(image.path, disposition: 'inline')
 end
